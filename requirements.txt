@@ -1,0 +1,13 @@
+# Core dependencies
+requests>=2.31.0
+feedparser>=6.0.11
+PyYAML>=6.0.1
+python-dateutil>=2.8.2
+
+# Semantic scoring — strongly recommended.
+# Without these, the agent falls back to keyword-only mode,
+# which misses papers that match your research shape but not your exact keywords.
+# ~80 MB download (all-MiniLM-L6-v2 model), runs fine on CPU.
+sentence-transformers>=2.7.0
+scikit-learn>=1.4.0
+torch>=2.0.0

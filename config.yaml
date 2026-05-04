@@ -1,0 +1,159 @@
+user:
+  name: "Janice"
+
+agent:
+  report_title: "Research Trajectory Scout"
+  max_results_per_query: 8     # papers fetched per arXiv query
+  final_top_k: 10              # max recommendations in the report
+  days_back: 30                # look back this many days on arXiv
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Search queries
+# Strategy: broad enough to catch non-obvious papers, specific enough
+# to avoid garbage. Each query covers one sensing modality or research axis.
+# ─────────────────────────────────────────────────────────────────────────────
+search_queries:
+
+  # Remote sensing / satellite
+  - '("remote sensing" OR satellite OR SAR OR "synthetic aperture radar") AND ("machine learning" OR "deep learning") AND (anomaly OR detection OR classification OR segmentation)'
+  - '("Sentinel-1" OR "Sentinel-2" OR "Landsat") AND ("machine learning" OR "deep learning") AND (flood OR fire OR "land use" OR change)'
+
+  # Acoustic / audio sensing
+  - '("acoustic sensing" OR "audio classification" OR "sound event detection") AND ("machine learning" OR "deep learning") AND (urban OR environment OR traffic OR industrial)'
+  - '("acoustic monitoring" OR "passive acoustic") AND ("machine learning" OR "deep learning") AND (wildlife OR environmental OR infrastructure)'
+
+  # Edge AI / TinyML
+  - '("TinyML" OR "edge AI" OR "edge inference" OR "embedded machine learning") AND (sensor OR acoustic OR vibration OR environmental OR IoT)'
+  - '("resource-constrained" OR "low-power" OR "microcontroller") AND ("machine learning" OR "deep learning") AND (sensor OR sensing OR detection)'
+
+  # Vibration / structural health
+  - '("vibration sensing" OR "structural health monitoring" OR "fault detection") AND ("machine learning" OR "deep learning")'
+  - '("motor fault" OR "bearing fault" OR "gearbox fault") AND ("machine learning" OR "deep learning" OR "signal processing")'
+
+  # Thermal / infrared
+  - '("thermal imaging" OR "infrared imaging" OR "thermography") AND ("machine learning" OR "deep learning") AND (urban OR safety OR energy OR detection)'
+
+  # RF / WiFi sensing
+  - '("WiFi sensing" OR "RF sensing" OR "channel state information" OR "CSI") AND ("machine learning" OR "deep learning") AND (activity OR occupancy OR detection)'
+  - '("radar sensing" OR "mmWave" OR "FMCW radar") AND ("machine learning" OR "deep learning") AND (gesture OR activity OR monitoring)'
+
+  # IoT / low-cost environmental
+  - '("low-cost sensor" OR "IoT" OR "sensor network") AND ("machine learning" OR calibration OR anomaly) AND (environment OR air quality OR water OR infrastructure)'
+
+  # Smartphone / mobile sensing
+  - '("smartphone sensor" OR "mobile sensing" OR "inertial measurement") AND ("machine learning" OR "deep learning") AND (activity OR transport OR urban OR health)'
+
+  # Dataset / benchmark gaps — Global South / India
+  - '("dataset" OR "benchmark") AND ("sensing" OR sensor) AND ("machine learning") AND ("Global South" OR India OR "low-resource" OR "developing")'
+  - '("acoustic dataset" OR "sensor dataset" OR "remote sensing dataset") AND ("machine learning") AND (India OR Africa OR "Southeast Asia" OR "underrepresented")'
+
+  # Domain adaptation / noisy sensors
+  - '("domain adaptation" OR "domain shift" OR "transfer learning") AND (sensor OR acoustic OR satellite OR "remote sensing") AND ("machine learning" OR "deep learning")'
+
+  # Self-supervised for scarce sensor data
+  - '("self-supervised" OR "contrastive learning" OR "masked autoencoder") AND (sensor OR acoustic OR satellite OR vibration OR environmental)'
+
+  # Multimodal sensing
+  - '("multimodal" OR "sensor fusion" OR "data fusion") AND ("machine learning" OR "deep learning") AND (sensing OR sensor OR monitoring) AND (anomaly OR detection OR classification)'
+
+  # Public safety / disaster / infrastructure
+  - '("disaster detection" OR "flood detection" OR "wildfire" OR "infrastructure monitoring") AND ("machine learning" OR "deep learning") AND (sensor OR satellite OR acoustic OR remote)'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Positive keywords  (+2 each)
+# Match the research shape — sensing, real-world, deployable, scarce data
+# ─────────────────────────────────────────────────────────────────────────────
+positive_keywords:
+  # Sensing modalities
+  - sensing
+  - sensor
+  - acoustic
+  - audio
+  - satellite
+  - remote sensing
+  - SAR
+  - multispectral
+  - hyperspectral
+  - AIS
+  - GPS
+  - vibration
+  - thermal
+  - infrared
+  - RF
+  - WiFi
+  - CSI
+  - radar
+  - mmWave
+  - lidar
+  # Deployment context
+  - IoT
+  - edge AI
+  - TinyML
+  - embedded
+  - microcontroller
+  - raspberry
+  - resource-constrained
+  - low-cost
+  - low-power
+  # ML tasks
+  - anomaly detection
+  - classification
+  - segmentation
+  - detection
+  - prediction
+  - domain adaptation
+  - calibration
+  - self-supervised
+  - contrastive
+  # Data/contribution type
+  - dataset
+  - benchmark
+  - real-world
+  - field deployment
+  - case study
+  # Application domains (your strongest)
+  - environmental monitoring
+  - infrastructure
+  - public safety
+  - disaster
+  - agriculture
+  - maritime
+  - transportation
+  - urban
+  - industrial
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Negative keywords  (−3 each, context-aware in code)
+# "transformer architecture" and "foundation model" are soft-penalised —
+# they don't fire if the paper is clearly a sensing paper.
+# ─────────────────────────────────────────────────────────────────────────────
+negative_keywords:
+  - large language model
+  - LLM
+  - prompt engineering
+  - ChatGPT
+  - GPT-4
+  - instruction tuning
+  - RLHF
+  - HCI
+  - user study
+  - cognitive load
+  - interaction design
+  - think-aloud
+  - participant
+  - thematic analysis
+  - grounded theory
+  - survey paper
+  - systematic review
+  - theoretical analysis
+  - proof of convergence
+  - theorem
+  - transformer architecture     # soft: not penalised in sensing papers
+  - foundation model             # soft: not penalised in sensing papers
+  - expensive GPU
+  - cloud compute
+  - A100
+  - V100
+  - paid API
