@@ -490,6 +490,76 @@ def generate_report(top_papers: list, rejected: list,
 # Main pipeline
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _truncate(text: str, limit: int = 120) -> str:
+    text = clean_text(text)
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "..."
+
+
+def build_telegram_digest(top_papers: list, config: dict, today: str) -> str:
+    """Build the short mobile-first digest sent after each successful run."""
+    title = config["agent"].get("report_title", "Research Scout Report")
+    strong = [p for p in top_papers if p["scoring"]["fit"] == "Strong fit"]
+    medium = [p for p in top_papers if p["scoring"]["fit"] == "Medium fit"]
+
+    lines = [
+        f"{title} - {today}",
+        f"{len(strong)} strong, {len(medium)} medium recommendations",
+        "",
+    ]
+
+    if not top_papers:
+        lines.append("No strong matches today. The scout still ran successfully.")
+        return "\n".join(lines)
+
+    for idx, item in enumerate(top_papers[:5], 1):
+        paper, scoring = item["paper"], item["scoring"]
+        lines += [
+            f"{idx}. {_truncate(paper.get('title', 'Untitled'))}",
+            (
+                f"{scoring['fit']} | score {scoring['score']} | "
+                f"sem {scoring['semantic_similarity']:.2f} | "
+                f"{paper.get('source', 'Unknown')} | "
+                f"{paper.get('published', 'Unknown') or 'Unknown'}"
+            ),
+            paper.get("link", ""),
+            "",
+        ]
+
+    return "\n".join(lines).strip()
+
+
+def send_telegram_digest(message: str) -> bool:
+    """
+    Send the digest if Telegram secrets are configured.
+    Missing or failing Telegram should never break report generation.
+    """
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+
+    if not bot_token or not chat_id:
+        log.info("Telegram digest skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing.")
+        return False
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "disable_web_page_preview": True,
+    }
+
+    try:
+        resp = requests.post(url, json=payload, timeout=30)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        log.warning(f"Telegram digest failed: {e}")
+        return False
+
+    log.info("Telegram digest sent.")
+    return True
+
+
 def main():
     if not SEMANTIC_AVAILABLE:
         log.warning(
@@ -586,6 +656,9 @@ def main():
     save_seen(seen)
 
     log.info(f"Report saved → {report_path}")
+
+    telegram_message = build_telegram_digest(top_papers, config, today)
+    send_telegram_digest(telegram_message)
 
 
 if __name__ == "__main__":

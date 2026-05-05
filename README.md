@@ -70,12 +70,34 @@ A free API key raises the Semantic Scholar rate limit from 1 req/s → 10 req/s.
 
 Without this key the agent still works — it just runs slightly slower.
 
-### Step 5 — Trigger the first GitHub Actions run
+### Step 5 — Lazy Mode: Telegram digest
+
+Telegram is the primary interface. GitHub stays in the background as the
+scheduler and searchable report archive.
+
+1. In Telegram, open **BotFather**.
+2. Send `/newbot`, choose a name, and copy the bot token.
+3. Send any message to your new bot so Telegram creates a chat.
+4. Visit this URL in your browser, replacing `<BOT_TOKEN>` with your token:
+   `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
+5. Copy the `chat.id` value from the response.
+6. In your GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**
+7. Add these secrets:
+   - `TELEGRAM_BOT_TOKEN` — your BotFather token
+   - `TELEGRAM_CHAT_ID` — your Telegram chat id
+   - `SEMANTIC_SCHOLAR_API_KEY` — optional, for better Semantic Scholar rate limits
+
+Every daily run sends one short Telegram message with the top 5 papers and links.
+If there are no recommendations, it sends a short "No strong matches today" note
+so you know the automation is alive.
+
+### Step 6 — Trigger the first GitHub Actions run
 
 1. Go to your repo on GitHub.
 2. Click **Actions** → **Daily Research Scout** → **Run workflow** → **Run workflow**.
 3. Watch the run. It should take 4–6 minutes.
-4. After it finishes, check the `reports/` folder for today's Markdown file.
+4. After it finishes, check Telegram first. GitHub should only be needed for debugging
+   or reading the full archived report.
 
 From now on the workflow runs automatically every day at **09:00 IST (03:30 UTC)**.
 
@@ -164,40 +186,8 @@ they don't fire if the paper is clearly a sensing paper.
 | **Now** | This setup | Works. Free. |
 | **v2** | Papers With Code API | Catches dataset papers not on arXiv |
 | **v3** | OpenAlex source | Broader journal coverage |
-| **v4** | Telegram / email digest | Push instead of pull — you get it in your phone |
-| **v5** | Weekly "best of week" summary | Reduces noise, surfaces the real gems |
-
-### Telegram digest (v4, ~20 lines of code)
-
-Add a `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` secret to GitHub.
-Then append to `agent.py`:
-
-```python
-def send_telegram_digest(top_papers, bot_token, chat_id):
-    if not top_papers:
-        return
-    lines = ["*Daily Research Scout*\n"]
-    for idx, item in enumerate(top_papers[:5], 1):
-        p, s = item["paper"], item["scoring"]
-        lines.append(
-            f"*{idx}.* [{p['title'][:70]}]({p['link']})\n"
-            f"   {s['fit']} · sem {s['semantic_similarity']:.2f}"
-        )
-    msg = "\n".join(lines)
-    requests.post(
-        f"https://api.telegram.org/bot{bot_token}/sendMessage",
-        json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"},
-    )
-```
-
-Call it at the end of `main()`:
-
-```python
-token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-chat  = os.environ.get("TELEGRAM_CHAT_ID", "")
-if token and chat:
-    send_telegram_digest(top_papers, token, chat)
-```
+| **v4** | Weekly "best of week" summary | Reduces noise, surfaces the real gems |
+| **v5** | WhatsApp digest | Possible later, but heavier than Telegram because Meta setup is more involved |
 
 ---
 
@@ -214,6 +204,11 @@ if token and chat:
 **GitHub Actions push fails with permission error**
 - Make sure `permissions: contents: write` is in `daily.yml` (it is by default here).
 - Check repo Settings → Actions → General → Workflow permissions → Read and write.
+
+**Telegram message does not arrive**
+- Make sure you sent at least one message to your bot before using `getUpdates`.
+- Check that `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set in GitHub Actions secrets.
+- Re-run the workflow and check the Actions log for `Telegram digest skipped` or `Telegram digest failed`.
 
 **All papers are showing as "Weak fit"**
 - Lower the score thresholds in `score_paper()` (change `>= 30` to `>= 22` for strong fit).

@@ -64,6 +64,8 @@ jobs:
           # Without it the agent still works but at 1 req/s (vs 10 req/s).
           # To add this: repo → Settings → Secrets → Actions → New secret
           SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python agent.py
 
